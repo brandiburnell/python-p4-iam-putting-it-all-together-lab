@@ -22,8 +22,8 @@ class Signup(Resource):
         # image_url = request.form['image_url'],
         # bio = request.form['bio']
 
-        print('\n\n\n ====================== LOG LOG LOG LOG \n\n')
-        print(request.get_json())
+        # print('\n\n\n ====================== LOG LOG LOG LOG \n\n')
+        # print(request.get_json())
 
         # create user with visible parameters
         new_user = User(
@@ -49,7 +49,12 @@ class Signup(Resource):
         
 
 class CheckSession(Resource):
-    pass
+    def get(self):
+        user = User.query.filter(User.id == session.get('user_id')).first()
+        if user:
+            return user.to_dict(), 200
+        else:
+            return {'error': 'Unauthorized'}, 401
 
 class Login(Resource):
     pass
