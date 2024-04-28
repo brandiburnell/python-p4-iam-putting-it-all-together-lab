@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from flask import request, session
+from flask import request, session, jsonify
 from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
 
@@ -83,7 +83,37 @@ class Logout(Resource):
         return {'error': 'Unauthorized'}, 401
     
 class RecipeIndex(Resource):
-    pass
+    def get(self):
+        # print(session['user_id'])
+        if session['user_id']:
+            user = User.query.filter(User.id == session['user_id']).first()
+            recipes = [recipe.to_dict() for recipe in user.recipes]
+            
+            return recipes, 200
+        
+        return {'error': 'Unauthorized'}, 401
+    
+    def post(self):
+        if session['user_id']:
+            request_json = request.get_json()
+            new_recipe = Recipe(
+                title = request_json.get('title'),
+                instructions = request_json.get('instructions'),
+                minutes_to_complete = request_json.get('minutes_to_complete'),
+                user_id = session['user_id']
+            )
+
+            try:
+                db.session.add(new_recipe)
+                db.session.commit()
+
+                return new_recipe.to_dict(), 201
+            except:
+                return {'error': 'Unprocessable entity'}, 422
+
+        return {'error': 'Unauthorized'}, 401
+
+
 
 api.add_resource(Signup, '/signup', endpoint='signup')
 api.add_resource(CheckSession, '/check_session', endpoint='check_session')
